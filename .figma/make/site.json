@@ -1,0 +1,10 @@
+{
+  "description": "Comprehensive clinic management platform streamlining scheduling, client records, finance, marketing, and multi-unit reporting for healthcare professionals.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
