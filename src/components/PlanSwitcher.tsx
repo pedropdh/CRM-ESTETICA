@@ -6,8 +6,9 @@ interface PlanSwitcherProps {
 }
 
 const plans: { id: Plan; label: string; color: string }[] = [
-  { id: 'basico', label: 'Básico', color: '#64748B' },
+  { id: 'start', label: 'Start', color: '#64748B' },
   { id: 'pro', label: 'Pro', color: '#0A6E6E' },
+  { id: 'business', label: 'Business', color: '#4F46E5' },
   { id: 'redes', label: 'Redes', color: '#7C3AED' },
 ];
 

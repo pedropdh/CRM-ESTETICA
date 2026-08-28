@@ -1,10 +1,11 @@
 import {
   LayoutDashboard, Calendar, Users, TrendingUp, DollarSign,
   MessageSquare, BarChart2, Settings, Bell, ChevronLeft,
-  ChevronRight, Building2, Lock
+  ChevronRight, Building2, Lock, Megaphone
 } from 'lucide-react';
 import type { Page, Plan } from '../types';
 import PlanSwitcher from './PlanSwitcher';
+import { getPlan } from '../data/adminMock';
 
 interface SidebarProps {
   current: Page;
@@ -16,13 +17,14 @@ interface SidebarProps {
   onPlanChange: (p: Plan) => void;
 }
 
-const planNames = { basico: 'Básico', pro: 'Pro', redes: 'Redes' };
-const planColors = { basico: '#64748B', pro: '#0A6E6E', redes: '#7C3AED' };
+const planNames = { start: 'Start', pro: 'Pro', business: 'Business', redes: 'Redes' };
+const planColors = { start: '#64748B', pro: '#0A6E6E', business: '#4F46E5', redes: '#7C3AED' };
 
 // Which pages are locked per plan
 const lockedFor: Partial<Record<Page, Plan[]>> = {
-  leads: ['basico'],
-  mensagens: ['basico'],
+  leads: ['start'],
+  mensagens: ['start'],
+  campanhas: ['start'],
 };
 
 const navItems = [
@@ -30,6 +32,7 @@ const navItems = [
   { id: 'agenda' as Page, label: 'Agenda', Icon: Calendar },
   { id: 'clientes' as Page, label: 'Clientes', Icon: Users },
   { id: 'leads' as Page, label: 'Funil de Leads', Icon: TrendingUp },
+  { id: 'campanhas' as Page, label: 'Campanhas', Icon: Megaphone },
   { id: 'financeiro' as Page, label: 'Financeiro', Icon: DollarSign },
   { id: 'mensagens' as Page, label: 'Mensagens', Icon: MessageSquare, badge: 3 },
   { id: 'relatorios' as Page, label: 'Relatórios', Icon: BarChart2 },
@@ -39,9 +42,8 @@ const bottomItems = [
   { id: 'configuracoes' as Page, label: 'Configurações', Icon: Settings },
 ];
 
-// Básico: 67 of 100 agendamentos used this month
-const BASICO_USAGE = 67;
-const BASICO_LIMIT = 100;
+// Start: mock usage this month — the limit comes from the real plan catalog
+const START_USAGE = 67;
 
 export default function Sidebar({ current, onNavigate, collapsed, onToggle, notifCount, plan, onPlanChange }: SidebarProps) {
   const w = collapsed ? 'w-16' : 'w-60';
@@ -121,21 +123,24 @@ export default function Sidebar({ current, onNavigate, collapsed, onToggle, noti
         })}
       </nav>
 
-      {/* Básico usage bar */}
-      {plan === 'basico' && !collapsed && (
+      {/* Start plan usage bar — limit pulled from the real plan catalog */}
+      {plan === 'start' && !collapsed && (() => {
+        const limit = getPlan('start').appointments;
+        const pct = Math.round((START_USAGE / limit) * 100);
+        return (
         <div className="px-4 py-3 border-t border-white/5">
           <div className="flex justify-between text-xs mb-1.5">
             <span style={{ color: 'rgba(255,255,255,0.4)' }}>Agendamentos</span>
-            <span style={{ color: BASICO_USAGE >= 90 ? '#F59E0B' : 'rgba(255,255,255,0.4)' }}>
-              {BASICO_USAGE}/{BASICO_LIMIT}
+            <span style={{ color: pct >= 90 ? '#F59E0B' : 'rgba(255,255,255,0.4)' }}>
+              {START_USAGE}/{limit}
             </span>
           </div>
           <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
             <div
               className="h-full rounded-full transition-all"
               style={{
-                width: `${(BASICO_USAGE / BASICO_LIMIT) * 100}%`,
-                background: BASICO_USAGE >= 90 ? '#F59E0B' : '#0D9488',
+                width: `${pct}%`,
+                background: pct >= 90 ? '#F59E0B' : '#0D9488',
               }}
             />
           </div>
@@ -147,7 +152,8 @@ export default function Sidebar({ current, onNavigate, collapsed, onToggle, noti
             Fazer upgrade →
           </button>
         </div>
-      )}
+        );
+      })()}
 
       {/* Bottom nav */}
       <div className="px-2 pb-2 pt-2 border-t border-white/5 space-y-0.5">

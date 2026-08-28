@@ -86,26 +86,35 @@ const testimonials = [
 
 const plans = [
   {
-    name: 'Básico',
+    name: 'Start',
     price: 97,
     desc: 'Ideal para clínicas solos ou recém abertas',
-    features: ['1 profissional', '100 agendamentos/mês', 'Agenda digital', 'Prontuário básico', 'Relatórios essenciais'],
+    features: ['2 profissionais', '150 agendamentos/mês', 'Agenda digital', 'Prontuário básico', 'Relatórios essenciais'],
     missing: ['Funil de leads', 'WhatsApp automático', 'Financeiro completo'],
     cta: 'Começar grátis',
     highlight: false,
   },
   {
     name: 'Pro',
-    price: 297,
+    price: 247,
     desc: 'Para clínicas em crescimento acelerado',
-    features: ['Até 5 profissionais', 'Agendamentos ilimitados', 'Funil de leads completo', 'WhatsApp automático', 'Financeiro + comissões', 'Relatórios avançados'],
-    missing: ['Multi-unidade'],
+    features: ['Até 5 profissionais', '800 agendamentos/mês', 'Funil de leads completo', 'WhatsApp automático', 'Financeiro + comissões', 'Relatórios avançados'],
+    missing: ['IA', 'Multi-unidade'],
     cta: 'Começar 14 dias grátis',
     highlight: true,
   },
   {
+    name: 'Business',
+    price: 497,
+    desc: 'Para clínicas grandes com equipes maiores',
+    features: ['Até 12 profissionais', '2.500 agendamentos/mês', '20 GB de armazenamento', 'Recursos de IA', 'Financeiro + comissões', 'Relatórios avançados'],
+    missing: ['Multi-unidade'],
+    cta: 'Começar 14 dias grátis',
+    highlight: false,
+  },
+  {
     name: 'Redes',
-    price: 697,
+    price: 890,
     desc: 'Para redes e franquias com múltiplas unidades',
     features: ['Profissionais ilimitados', 'Unidades ilimitadas', 'Dashboard consolidado', 'API própria', 'Onboarding dedicado', 'SLA 99,9% garantido'],
     missing: [],
@@ -470,7 +479,7 @@ export default function Landing({ onEnter }: LandingProps) {
             <p style={{ color: '#64748B' }}>Comece grátis por 14 dias. Sem cartão de crédito.</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {plans.map((p) => (
               <div key={p.name} className="relative rounded-2xl p-7 flex flex-col"
                 style={{

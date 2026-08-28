@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Building2, Users, Scissors, CreditCard, MessageSquare, Bell, Lock, Package, AlertCircle } from 'lucide-react';
+import { Building2, Users, Scissors, CreditCard, MessageSquare, Bell, Lock, Package, AlertCircle, Check } from 'lucide-react';
 import type { Plan } from '../types';
+import { getPlan, getPlans } from '../data/adminMock';
 
 const sections = [
   { id: 'clinica', label: 'Clínica & Unidades', icon: Building2 },
@@ -39,7 +40,10 @@ const messageTemplates = [
 interface ConfiguracoesProps { plan?: Plan; }
 
 export default function Configuracoes({ plan = 'pro' }: ConfiguracoesProps) {
-  const isBasico = plan === 'basico';
+  const currentPlan = getPlan(plan);
+  const userLimit = currentPlan.users; // -1 = ilimitado
+  const atTeamLimit = userLimit >= 0 && team.length > userLimit;
+  const isBasico = plan === 'start';
   const [activeSection, setActiveSection] = useState('clinica');
 
   return (
@@ -101,23 +105,26 @@ export default function Configuracoes({ plan = 'pro' }: ConfiguracoesProps) {
           <div className="max-w-2xl space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>Equipe & Permissões</h2>
-              {!isBasico && (
+              {!atTeamLimit && (
                 <button className="px-4 py-2 rounded-xl text-sm font-medium text-white" style={{ background: 'var(--primary)' }}>
                   + Convidar
                 </button>
               )}
             </div>
-            {isBasico && (
+            <div className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
+              {userLimit < 0 ? `${team.length} usuários · sem limite no plano ${currentPlan.name}` : `${Math.min(team.length, userLimit)} de ${userLimit} usuários usados no plano ${currentPlan.name}`}
+            </div>
+            {atTeamLimit && (
               <div className="flex items-center gap-3 px-4 py-3 rounded-xl"
                 style={{ background: '#FFF7ED', border: '1px solid #FED7AA' }}>
                 <AlertCircle size={15} style={{ color: '#D97706', flexShrink: 0 }} />
                 <span className="text-sm" style={{ color: '#92400E' }}>
-                  Plano Básico inclui <strong>1 profissional</strong>. Para adicionar mais membros, faça upgrade para o Pro.
+                  Plano {currentPlan.name} inclui até <strong>{userLimit} usuário{userLimit === 1 ? '' : 's'}</strong>. Para adicionar mais membros, faça upgrade.
                 </span>
               </div>
             )}
             <div className="space-y-2">
-              {(isBasico ? team.slice(0, 1) : team).map((m) => (
+              {(userLimit >= 0 ? team.slice(0, userLimit) : team).map((m) => (
                 <div key={m.name} className="flex items-center gap-4 p-4 rounded-xl"
                   style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
                   <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
@@ -212,49 +219,55 @@ export default function Configuracoes({ plan = 'pro' }: ConfiguracoesProps) {
         )}
 
         {activeSection === 'plano' && (
-          <div className="max-w-2xl space-y-5">
+          <div className="max-w-3xl space-y-5">
             <h2 className="text-xl font-bold" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>Plano & Cobrança</h2>
             {/* Current plan */}
             <div className="p-5 rounded-xl" style={{ background: 'linear-gradient(135deg, #0A6E6E, #0D9488)', color: 'white' }}>
               <div className="flex items-center justify-between mb-3">
-                <div className="text-lg font-bold" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>Plano Pro</div>
+                <div className="text-lg font-bold" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>Plano {currentPlan.name}</div>
                 <span className="text-xs px-2 py-1 rounded-full" style={{ background: 'rgba(255,255,255,0.2)' }}>Ativo</span>
               </div>
-              <div className="text-3xl font-bold mb-1" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>R$ 297<span className="text-sm font-normal opacity-70">/mês</span></div>
+              <div className="text-3xl font-bold mb-1" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>
+                R$ {currentPlan.price}<span className="text-sm font-normal opacity-70">/mês</span>
+              </div>
               <div className="text-sm opacity-80">Próxima cobrança: 01/09/2026</div>
             </div>
             {/* Plans */}
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { name: 'Básico', price: 97, features: ['1 profissional', '100 agendamentos/mês', 'Agenda digital', 'Prontuário básico'] },
-                { name: 'Pro', price: 297, features: ['5 profissionais', 'Agendamentos ilimitados', 'Funil de leads', 'Financeiro completo'], current: true },
-                { name: 'Redes', price: 697, features: ['Profissionais ilimitados', 'Múltiplas unidades', 'Relatórios avançados', 'API própria'] },
-              ].map((p) => (
-                <div key={p.name} className="p-4 rounded-xl"
-                  style={{
-                    background: p.current ? 'var(--secondary)' : 'var(--card)',
-                    border: p.current ? `2px solid var(--primary)` : '1px solid var(--border)'
-                  }}>
-                  <div className="font-bold mb-1" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>{p.name}</div>
-                  <div className="text-xl font-bold mb-3" style={{ color: 'var(--primary)', fontFamily: 'Instrument Sans, sans-serif' }}>
-                    R$ {p.price}<span className="text-xs font-normal" style={{ color: 'var(--muted-foreground)' }}>/mês</span>
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+              {getPlans().map((p) => {
+                const isCurrent = p.id === plan;
+                const features = [
+                  p.professionals < 0 ? 'Profissionais ilimitados' : `Até ${p.professionals} profissionais`,
+                  p.appointments < 0 ? 'Agendamentos ilimitados' : `${p.appointments} agendamentos/mês`,
+                  p.whatsapp ? 'WhatsApp automático' : 'Sem WhatsApp automático',
+                  p.ai ? 'Recursos de IA' : `${p.storageGb} GB de armazenamento`,
+                ];
+                return (
+                  <div key={p.id} className="p-4 rounded-xl flex flex-col"
+                    style={{
+                      background: isCurrent ? 'var(--secondary)' : 'var(--card)',
+                      border: isCurrent ? `2px solid var(--primary)` : '1px solid var(--border)'
+                    }}>
+                    <div className="font-bold mb-1" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>{p.name}</div>
+                    <div className="text-xl font-bold mb-3" style={{ color: 'var(--primary)', fontFamily: 'Instrument Sans, sans-serif' }}>
+                      R$ {p.price}<span className="text-xs font-normal" style={{ color: 'var(--muted-foreground)' }}>/mês</span>
+                    </div>
+                    <ul className="space-y-1 mb-4 flex-1">
+                      {features.map(f => (
+                        <li key={f} className="text-xs flex items-center gap-1.5">
+                          <Check size={11} style={{ color: 'var(--primary)' }} /> {f}
+                        </li>
+                      ))}
+                    </ul>
+                    {!isCurrent ? (
+                      <button className="w-full py-1.5 rounded-lg text-xs font-semibold text-white"
+                        style={{ background: 'var(--primary)' }}>Fazer upgrade</button>
+                    ) : (
+                      <div className="text-center text-xs font-medium" style={{ color: 'var(--primary)' }}>Plano atual</div>
+                    )}
                   </div>
-                  <ul className="space-y-1 mb-4">
-                    {p.features.map(f => (
-                      <li key={f} className="text-xs flex items-center gap-1.5">
-                        <span style={{ color: 'var(--primary)' }}>✓</span> {f}
-                      </li>
-                    ))}
-                  </ul>
-                  {!p.current && (
-                    <button className="w-full py-1.5 rounded-lg text-xs font-semibold text-white"
-                      style={{ background: 'var(--primary)' }}>Fazer upgrade</button>
-                  )}
-                  {p.current && (
-                    <div className="text-center text-xs font-medium" style={{ color: 'var(--primary)' }}>Plano atual</div>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

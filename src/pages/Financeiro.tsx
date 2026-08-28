@@ -4,7 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import type { Plan } from '../types';
 
 const allTabs = ['Visão Geral', 'Contas a Receber', 'Contas a Pagar', 'Comissões', 'Fechamento de Caixa'];
-// Básico only shows Visão Geral (limited) and Contas a Receber
+// Start only shows Visão Geral (limited)
 const basicoTabs = ['Visão Geral'];
 
 const monthlyData = [
@@ -56,7 +56,7 @@ const cashflow = [
 interface FinanceiroProps { plan?: Plan; }
 
 export default function Financeiro({ plan = 'pro' }: FinanceiroProps) {
-  const isBasico = plan === 'basico';
+  const isBasico = plan === 'start';
   const tabs = isBasico ? basicoTabs : allTabs;
   const [tab, setTab] = useState('Visão Geral');
 
@@ -92,7 +92,7 @@ export default function Financeiro({ plan = 'pro' }: FinanceiroProps) {
                 style={{ background: '#EEF2FF', border: '1px solid #C7D2FE' }}>
                 <Lock size={15} style={{ color: '#6366F1', flexShrink: 0 }} />
                 <span className="text-sm" style={{ color: '#3730A3' }}>
-                  O plano Básico exibe apenas <strong>resumo do mês atual</strong>. Histórico comparativo, comissões e fechamento de caixa estão no plano <strong>Pro</strong>.
+                  O plano Start exibe apenas <strong>resumo do mês atual</strong>. Histórico comparativo, comissões e fechamento de caixa estão no plano <strong>Pro</strong>.
                 </span>
               </div>
             )}
