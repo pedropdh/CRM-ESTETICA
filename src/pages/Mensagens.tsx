@@ -41,7 +41,7 @@ const quickReplies = [
 interface MensagensProps { plan?: Plan; onUpgrade?: () => void; }
 
 export default function Mensagens({ plan = 'pro', onUpgrade }: MensagensProps) {
-  if (plan === 'basico') {
+  if (plan === 'start') {
     return (
       <PlanGate
         feature="Central de Mensagens WhatsApp"

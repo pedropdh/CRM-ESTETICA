@@ -1,6 +1,7 @@
 import { TrendingUp, TrendingDown, Calendar, Users, DollarSign, Star, Clock, ChevronRight, AlertCircle, Lock, ArrowRight } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import type { Page, Plan } from '../types';
+import { getPlan } from '../data/adminMock';
 
 const revenueData = [
   { mes: 'Mar', valor: 42000, meta: 45000 },
@@ -70,21 +71,24 @@ function KpiCard({ label, value, sub, icon: Icon, trend, trendUp }: {
 }
 
 export default function Dashboard({ onNavigate, plan }: DashboardProps) {
-  const isBasico = plan === 'basico';
+  const isBasico = plan === 'start';
+  const startUsage = 67;
+  const startLimit = getPlan('start').appointments;
+  const startPct = Math.round((startUsage / startLimit) * 100);
 
   return (
     <div className="p-6 space-y-6 overflow-auto h-full">
-      {/* Básico usage alert */}
+      {/* Start plan usage alert */}
       {isBasico && (
         <div className="flex items-center gap-3 px-4 py-3 rounded-xl"
           style={{ background: '#FFF7ED', border: '1px solid #FED7AA' }}>
           <AlertCircle size={16} style={{ color: '#D97706' }} />
           <div className="flex-1 min-w-0">
             <span className="text-sm" style={{ color: '#92400E' }}>
-              <strong>67 de 100 agendamentos</strong> usados este mês no plano Básico.
+              <strong>{startUsage} de {startLimit} agendamentos</strong> usados este mês no plano Start.
             </span>
             <div className="mt-1.5 h-1.5 rounded-full overflow-hidden w-48" style={{ background: '#FED7AA' }}>
-              <div className="h-full rounded-full" style={{ width: '67%', background: '#D97706' }} />
+              <div className="h-full rounded-full" style={{ width: `${startPct}%`, background: '#D97706' }} />
             </div>
           </div>
           <button onClick={() => onNavigate('configuracoes')} className="ml-auto text-xs font-semibold whitespace-nowrap flex items-center gap-1"

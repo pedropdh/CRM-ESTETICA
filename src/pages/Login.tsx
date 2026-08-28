@@ -5,9 +5,10 @@ import type { Page } from '../types';
 interface LoginProps {
   onLogin: () => void;
   onNavigate: (p: Page) => void;
+  onAdminAccess?: () => void;
 }
 
-export default function Login({ onLogin, onNavigate }: LoginProps) {
+export default function Login({ onLogin, onNavigate, onAdminAccess }: LoginProps) {
   const [email, setEmail] = useState('marina@lumina.com.br');
   const [password, setPassword] = useState('••••••••');
   const [showPw, setShowPw] = useState(false);
@@ -179,6 +180,13 @@ export default function Login({ onLogin, onNavigate }: LoginProps) {
                 </p>
               </form>
             </>
+          )}
+
+          {onAdminAccess && (
+            <button onClick={onAdminAccess}
+              className="w-full text-center text-xs mt-8" style={{ color: 'var(--muted-foreground)' }}>
+              Sou da equipe Lumina · Acesso administrativo →
+            </button>
           )}
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { Lock, ArrowRight, Zap } from 'lucide-react';
 import type { Plan } from '../types';
+import { getPlan } from '../data/adminMock';
 
 interface PlanGateProps {
   feature: string;
@@ -10,7 +11,7 @@ interface PlanGateProps {
   children: React.ReactNode;
 }
 
-const planNames = { basico: 'Básico', pro: 'Pro', redes: 'Redes' };
+const planNames = { start: 'Start', pro: 'Pro', business: 'Business', redes: 'Redes' };
 const planColors = { pro: '#0A6E6E', redes: '#7C3AED' };
 const planBgs = { pro: '#E0F2F1', redes: '#EDE9FE' };
 
@@ -20,7 +21,7 @@ const requiredFeatures: Record<string, string[]> = {
 };
 
 export default function PlanGate({ feature, description, requiredPlan, currentPlan, onUpgrade, children }: PlanGateProps) {
-  const planOrder = { basico: 0, pro: 1, redes: 2 };
+  const planOrder = { start: 0, pro: 1, business: 2, redes: 3 };
   const isLocked = planOrder[currentPlan] < planOrder[requiredPlan];
 
   if (!isLocked) return <>{children}</>;
@@ -76,7 +77,7 @@ export default function PlanGate({ feature, description, requiredPlan, currentPl
           Fazer upgrade para {planNames[requiredPlan]} <ArrowRight size={16} />
         </button>
         <p className="text-xs mt-3" style={{ color: '#94A3B8' }}>
-          Você está no plano <strong>{planNames[currentPlan]}</strong> · R${currentPlan === 'basico' ? '97' : '297'}/mês
+          Você está no plano <strong>{planNames[currentPlan]}</strong> · R${getPlan(currentPlan).price}/mês
         </p>
       </div>
     </div>

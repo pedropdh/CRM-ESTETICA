@@ -27,13 +27,20 @@ const noshowTrend = [
 ];
 
 const allTabs = ['Conversão', 'Profissionais', 'No-show', 'Multi-unidade'];
-// Básico: only essential conversion report (no-show summary only, no professional breakdown)
+// Start: only essential conversion report (no-show summary only, no professional breakdown)
 const basicoLockedTabs = ['Profissionais', 'No-show', 'Multi-unidade'];
+
+// Multi-unidade — exclusivo do plano Redes
+const unitsData = [
+  { name: 'Unidade Jardins (matriz)', revenue: 58420, appointments: 214, conversion: 62, noshow: 3.8 },
+  { name: 'Unidade Alphaville', revenue: 41900, appointments: 168, conversion: 57, noshow: 5.1 },
+  { name: 'Unidade Moema', revenue: 33150, appointments: 142, conversion: 54, noshow: 6.4 },
+];
 
 interface RelatoriosProps { plan?: Plan; }
 
 export default function Relatorios({ plan = 'pro' }: RelatoriosProps) {
-  const isBasico = plan === 'basico';
+  const isBasico = plan === 'start';
   const [tab, setTab] = useState('Conversão');
   const [period, setPeriod] = useState('6m');
 
@@ -42,7 +49,7 @@ export default function Relatorios({ plan = 'pro' }: RelatoriosProps) {
       <div className="flex items-center border-b px-4 shrink-0 gap-4" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
         <div className="flex overflow-x-auto">
           {allTabs.map(t => {
-            const locked = isBasico && basicoLockedTabs.includes(t);
+            const locked = (isBasico && basicoLockedTabs.includes(t)) || (t === 'Multi-unidade' && plan !== 'redes');
             return (
               <button key={t} onClick={() => !locked && setTab(t)}
                 className="px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors flex items-center gap-1.5"
@@ -82,7 +89,7 @@ export default function Relatorios({ plan = 'pro' }: RelatoriosProps) {
                 style={{ background: '#EEF2FF', border: '1px solid #C7D2FE' }}>
                 <Lock size={15} style={{ color: '#6366F1', flexShrink: 0 }} />
                 <span className="text-sm" style={{ color: '#3730A3' }}>
-                  Plano Básico exibe apenas <strong>relatório essencial de conversão</strong>. Análise por profissional, no-show detalhado e multi-unidade estão no plano <strong>Pro</strong>.
+                  Plano Start exibe apenas <strong>relatório essencial de conversão</strong>. Análise por profissional, no-show detalhado e multi-unidade estão no plano <strong>Pro</strong>.
                 </span>
               </div>
             )}
@@ -215,18 +222,46 @@ export default function Relatorios({ plan = 'pro' }: RelatoriosProps) {
           </div>
         )}
 
-        {tab === 'Multi-unidade' && (
-          <div className="space-y-4">
-            <div className="p-8 rounded-2xl text-center" style={{ background: 'var(--card)', border: '2px dashed var(--border)' }}>
-              <div className="text-4xl mb-3">🏢</div>
-              <h3 className="text-lg font-bold mb-2" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>Dashboard Multi-unidade</h3>
-              <p className="text-sm mb-4" style={{ color: 'var(--muted-foreground)' }}>
-                Disponível no plano <strong>Redes</strong>. Gerencie múltiplas unidades, compare desempenho entre clínicas e consolide relatórios em uma visão única.
-              </p>
-              <button className="px-6 py-2.5 rounded-xl text-sm font-semibold text-white"
-                style={{ background: 'var(--primary)' }}>
-                Fazer upgrade para Redes
-              </button>
+        {tab === 'Multi-unidade' && plan === 'redes' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { label: 'Faturamento consolidado', value: `R$ ${unitsData.reduce((s, u) => s + u.revenue, 0).toLocaleString('pt-BR')}`, color: 'var(--primary)' },
+                { label: 'Unidades ativas', value: String(unitsData.length), color: '#7C3AED' },
+                { label: 'Agendamentos (mês)', value: unitsData.reduce((s, u) => s + u.appointments, 0).toLocaleString('pt-BR'), color: '#0891B2' },
+                { label: 'Conversão média', value: `${Math.round(unitsData.reduce((s, u) => s + u.conversion, 0) / unitsData.length)}%`, color: '#059669' },
+              ].map(({ label, value, color }) => (
+                <div key={label} className="p-4 rounded-xl" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+                  <div className="text-xl font-bold" style={{ color, fontFamily: 'Instrument Sans, sans-serif' }}>{value}</div>
+                  <div className="text-xs mt-0.5" style={{ color: 'var(--muted-foreground)' }}>{label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div>
+              <h3 className="text-sm font-bold mb-3">Desempenho por unidade</h3>
+              <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border)' }}>
+                <table className="w-full text-sm">
+                  <thead style={{ background: 'var(--secondary)' }}>
+                    <tr>
+                      {['Unidade', 'Faturamento', 'Agendamentos', 'Conversão', 'No-show'].map(h => (
+                        <th key={h} className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--muted-foreground)' }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y" style={{ borderColor: 'var(--border)' }}>
+                    {unitsData.map(u => (
+                      <tr key={u.name}>
+                        <td className="px-4 py-3 font-medium">{u.name}</td>
+                        <td className="px-4 py-3 font-semibold" style={{ color: 'var(--primary)' }}>R$ {u.revenue.toLocaleString('pt-BR')}</td>
+                        <td className="px-4 py-3 text-xs">{u.appointments}</td>
+                        <td className="px-4 py-3 text-xs">{u.conversion}%</td>
+                        <td className="px-4 py-3 text-xs">{u.noshow}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}

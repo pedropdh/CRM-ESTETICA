@@ -1,4 +1,4 @@
-export type Plan = 'basico' | 'pro' | 'redes';
+export type Plan = 'start' | 'pro' | 'business' | 'redes';
 
 export type Page =
   | 'login'
@@ -13,6 +13,7 @@ export type Page =
   | 'novo-cliente'
   | 'leads'
   | 'novo-lead'
+  | 'campanhas'
   | 'financeiro'
   | 'mensagens'
   | 'relatorios'
@@ -20,7 +21,18 @@ export type Page =
   | 'notificacoes'
   | 'perfil'
   | 'estado-vazio'
-  | 'acesso-negado';
+  | 'acesso-negado'
+  | 'admin-login'
+  | 'admin-dashboard'
+  | 'admin-clinica-detalhe'
+  | 'admin-usuarios'
+  | 'admin-planos'
+  | 'admin-assinaturas'
+  | 'admin-whatsapp'
+  | 'admin-uso'
+  | 'admin-suporte'
+  | 'admin-logs'
+  | 'admin-configuracoes';
 
 export interface NavItem {
   id: Page;

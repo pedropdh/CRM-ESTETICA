@@ -101,7 +101,7 @@ function LeadCard({ lead, onMove }: { lead: Lead; onMove: (id: string, stage: St
 }
 
 export default function Leads({ onNavigate, plan = 'pro', onUpgrade }: LeadsProps) {
-  if (plan === 'basico') {
+  if (plan === 'start') {
     return (
       <PlanGate
         feature="Funil de Leads"
