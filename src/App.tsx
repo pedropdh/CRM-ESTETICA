@@ -2,105 +2,96 @@ import { useState } from 'react';
 import type { Page, Plan } from './types';
 
 import Sidebar from './components/Sidebar';
+import BottomNav from './components/BottomNav';
 import Header from './components/Header';
 
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Onboarding from './pages/Onboarding';
-import Dashboard from './pages/Dashboard';
+import Hoje from './pages/Hoje';
 import Agenda from './pages/Agenda';
-import Leads from './pages/Leads';
+import NovoAgendamento from './pages/NovoAgendamento';
 import Clientes from './pages/Clientes';
 import ClienteDetalhe from './pages/ClienteDetalhe';
-import Financeiro from './pages/Financeiro';
-import Mensagens from './pages/Mensagens';
-import Relatorios from './pages/Relatorios';
-import Configuracoes from './pages/Configuracoes';
-import Notificacoes from './pages/Notificacoes';
-import Perfil from './pages/Perfil';
-import NovoAgendamento from './pages/NovoAgendamento';
 import NovoCliente from './pages/NovoCliente';
+import Whatsapp from './pages/Whatsapp';
+import Leads from './pages/Leads';
 import NovoLead from './pages/NovoLead';
-import EstadoVazio from './pages/EstadoVazio';
-import AcessoNegado from './pages/AcessoNegado';
+import Configuracoes from './pages/Configuracoes';
+import Perfil from './pages/Perfil';
+
+import { getConversations } from './data/mock';
 
 export default function App() {
   const [showLanding, setShowLanding] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [currentPage, setCurrentPage] = useState<Page>('dashboard');
+  const [currentPage, setCurrentPage] = useState<Page>('hoje');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [selectedClientId, setSelectedClientId] = useState('1');
-  const [plan, setPlan] = useState<Plan>('pro');
+  const [selectedClientId, setSelectedClientId] = useState('c1');
+  const [plan, setPlan] = useState<Plan>('crescimento');
 
   function navigate(p: Page) {
     setCurrentPage(p);
   }
 
+  function selectClient(id: string) {
+    setSelectedClientId(id);
+    setCurrentPage('cliente-detalhe');
+  }
+
   function handleLogin() {
     setIsLoggedIn(true);
     setShowOnboarding(false);
-    setCurrentPage('dashboard');
+    setCurrentPage('hoje');
   }
 
+  function handleLogout() {
+    setIsLoggedIn(false);
+    setShowLanding(true);
+    setCurrentPage('hoje');
+  }
+
+  /** Upgrade sempre leva para a aba Plano & Consumo. */
   function goUpgrade() {
     setCurrentPage('configuracoes');
   }
 
-  if (showLanding) {
-    return <Landing onEnter={() => setShowLanding(false)} />;
-  }
+  if (showLanding) return <Landing onEnter={() => setShowLanding(false)} />;
 
   if (!isLoggedIn) {
-    if (showOnboarding) {
-      return <Onboarding onComplete={handleLogin} />;
-    }
-    return <Login onLogin={handleLogin} onNavigate={navigate} />;
+    if (showOnboarding) return <Onboarding onComplete={handleLogin} />;
+    return <Login onLogin={handleLogin} onNavigate={navigate} onStartOnboarding={() => setShowOnboarding(true)} />;
   }
 
-  const NOTIF_COUNT = 3;
+  const unreadCount = getConversations().reduce((s, c) => s + c.unread, 0);
 
   function renderPage() {
     switch (currentPage) {
-      case 'dashboard':
-        return <Dashboard onNavigate={navigate} plan={plan} />;
+      case 'hoje':
+        return <Hoje onNavigate={navigate} onSelectClient={selectClient} plan={plan} />;
       case 'agenda':
-        return <Agenda onNavigate={navigate} />;
+        return <Agenda onNavigate={navigate} onSelectClient={selectClient} />;
       case 'novo-agendamento':
         return <NovoAgendamento onNavigate={navigate} />;
       case 'clientes':
-        return (
-          <Clientes
-            onNavigate={navigate}
-            onSelectClient={(id) => { setSelectedClientId(id); navigate('cliente-detalhe'); }}
-          />
-        );
+        return <Clientes onNavigate={navigate} onSelectClient={selectClient} />;
       case 'cliente-detalhe':
         return <ClienteDetalhe clientId={selectedClientId} onNavigate={navigate} />;
       case 'novo-cliente':
         return <NovoCliente onNavigate={navigate} />;
+      case 'whatsapp':
+        return <Whatsapp plan={plan} onNavigate={navigate} onSelectClient={selectClient} onUpgrade={goUpgrade} />;
       case 'leads':
         return <Leads onNavigate={navigate} plan={plan} onUpgrade={goUpgrade} />;
       case 'novo-lead':
         return <NovoLead onNavigate={navigate} />;
-      case 'financeiro':
-        return <Financeiro plan={plan} />;
-      case 'mensagens':
-        return <Mensagens plan={plan} onUpgrade={goUpgrade} />;
-      case 'relatorios':
-        return <Relatorios plan={plan} />;
       case 'configuracoes':
-        return <Configuracoes plan={plan} />;
-      case 'notificacoes':
-        return <Notificacoes />;
+        return <Configuracoes plan={plan} onPlanChange={setPlan} />;
       case 'perfil':
-        return <Perfil />;
-      case 'estado-vazio':
-        return <EstadoVazio onNavigate={navigate} />;
-      case 'acesso-negado':
-        return <AcessoNegado onNavigate={navigate} />;
+        return <Perfil onLogout={handleLogout} />;
       default:
-        return <Dashboard onNavigate={navigate} plan={plan} />;
+        return <Hoje onNavigate={navigate} onSelectClient={selectClient} plan={plan} />;
     }
   }
 
@@ -111,15 +102,16 @@ export default function App() {
         onNavigate={navigate}
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(c => !c)}
-        notifCount={NOTIF_COUNT}
         plan={plan}
         onPlanChange={setPlan}
+        unreadCount={unreadCount}
       />
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-        <Header current={currentPage} onNavigate={navigate} notifCount={NOTIF_COUNT} />
+        <Header current={currentPage} onNavigate={navigate} onLogout={handleLogout} />
         <main className="flex-1 overflow-hidden flex flex-col" style={{ background: 'var(--background)' }}>
           {renderPage()}
         </main>
+        <BottomNav current={currentPage} onNavigate={navigate} unreadCount={unreadCount} />
       </div>
     </div>
   );

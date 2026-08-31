@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ArrowLeft, Check } from 'lucide-react';
 import type { Page } from '../types';
+import { leadSources } from '../data/mock';
 
 interface NovoClienteProps {
   onNavigate: (p: Page) => void;
@@ -16,7 +17,7 @@ export default function NovoCliente({ onNavigate }: NovoClienteProps) {
           <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: '#ECFDF5' }}>
             <Check size={32} style={{ color: '#059669' }} />
           </div>
-          <h2 className="text-xl font-bold mb-1" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>Cliente cadastrado!</h2>
+          <h2 className="text-xl font-bold mb-1" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>Cliente cadastrada!</h2>
           <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>Redirecionando para a lista…</p>
         </div>
       </div>
@@ -25,15 +26,15 @@ export default function NovoCliente({ onNavigate }: NovoClienteProps) {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <div className="px-6 py-3 flex items-center gap-3 border-b shrink-0"
+      <div className="px-3 md:px-6 py-3 flex items-center gap-3 border-b shrink-0"
         style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
         <button onClick={() => onNavigate('clientes')} className="p-1.5 rounded-lg hover:bg-secondary" style={{ color: 'var(--muted-foreground)' }}>
           <ArrowLeft size={18} />
         </button>
-        <span className="font-semibold">Novo Cliente</span>
+        <span className="font-semibold text-sm">Nova cliente</span>
       </div>
 
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 overflow-auto p-4 md:p-6">
         <div className="max-w-lg mx-auto space-y-5">
           <div className="p-5 rounded-xl space-y-4" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
             <h3 className="font-semibold text-sm" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>Dados Pessoais</h3>
@@ -86,7 +87,7 @@ export default function NovoCliente({ onNavigate }: NovoClienteProps) {
           <div className="p-5 rounded-xl space-y-3" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
             <h3 className="font-semibold text-sm" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>Como nos conheceu?</h3>
             <div className="flex flex-wrap gap-2">
-              {['Instagram', 'Google', 'Indicação', 'WhatsApp', 'Passagem', 'Outros'].map(s => (
+              {leadSources.map(s => (
                 <button key={s} className="px-3 py-1.5 rounded-full text-xs font-medium border"
                   style={{ borderColor: 'var(--border)', color: 'var(--secondary-foreground)', background: 'var(--secondary)' }}>
                   {s}
@@ -101,7 +102,7 @@ export default function NovoCliente({ onNavigate }: NovoClienteProps) {
               style={{ borderColor: 'var(--border)', color: 'var(--secondary-foreground)' }}>Cancelar</button>
             <button onClick={() => { setSaved(true); setTimeout(() => onNavigate('clientes'), 1200); }}
               className="flex-1 py-3 rounded-xl text-sm font-semibold text-white"
-              style={{ background: 'var(--primary)' }}>Salvar Cliente</button>
+              style={{ background: 'var(--primary)' }}>Salvar cliente</button>
           </div>
         </div>
       </div>

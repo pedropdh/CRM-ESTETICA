@@ -5,9 +5,11 @@ import type { Page } from '../types';
 interface LoginProps {
   onLogin: () => void;
   onNavigate: (p: Page) => void;
+  /** "Criar conta" leva para o onboarding de 3 passos. */
+  onStartOnboarding: () => void;
 }
 
-export default function Login({ onLogin, onNavigate }: LoginProps) {
+export default function Login({ onLogin, onStartOnboarding }: LoginProps) {
   const [email, setEmail] = useState('marina@lumina.com.br');
   const [password, setPassword] = useState('••••••••');
   const [showPw, setShowPw] = useState(false);
@@ -19,7 +21,8 @@ export default function Login({ onLogin, onNavigate }: LoginProps) {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      onLogin();
+      if (tab === 'register') onStartOnboarding();
+      else onLogin();
     }, 900);
   }
 
@@ -104,7 +107,7 @@ export default function Login({ onLogin, onNavigate }: LoginProps) {
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Senha</label>
-                    <button type="button" onClick={() => onNavigate('forgot-password')} className="text-xs" style={{ color: 'var(--accent)' }}>
+                    <button type="button" className="text-xs" style={{ color: 'var(--accent)' }}>
                       Esqueceu a senha?
                     </button>
                   </div>

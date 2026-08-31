@@ -1,161 +1,178 @@
 import { useState } from 'react';
-import { Search, Filter, Plus, ChevronRight, Phone, Mail, Star } from 'lucide-react';
-import type { Page } from '../types';
-
-const clients = [
-  { id: '1', name: 'Ana Carolina Medeiros', phone: '(11) 99234-5678', email: 'anacarolina@email.com', procedure: 'Toxina Botulínica', lastVisit: '15/08/2026', totalSpent: 8700, status: 'ativo', visits: 12, stage: 'VIP' },
-  { id: '2', name: 'Fernanda Oliveira', phone: '(11) 97654-3210', email: 'fernanda@email.com', procedure: 'Preenchimento Labial', lastVisit: '10/08/2026', totalSpent: 6200, status: 'ativo', visits: 8, stage: 'Frequente' },
-  { id: '3', name: 'Juliana Torres', phone: '(11) 98877-6655', email: 'juliana.torres@email.com', procedure: 'Limpeza de Pele', lastVisit: '02/08/2026', totalSpent: 1680, status: 'ativo', visits: 6, stage: 'Regular' },
-  { id: '4', name: 'Patricia Santos', phone: '(11) 91234-5670', email: 'patricia.s@email.com', procedure: 'Bioestimulador', lastVisit: '20/07/2026', totalSpent: 5400, status: 'ativo', visits: 4, stage: 'Frequente' },
-  { id: '5', name: 'Roberta Lima', phone: '(11) 92345-6781', email: 'roberta.l@email.com', procedure: 'Fio de PDO', lastVisit: '05/07/2026', totalSpent: 9800, status: 'ativo', visits: 15, stage: 'VIP' },
-  { id: '6', name: 'Camila Duarte', phone: '(11) 93456-7892', email: 'camila.d@email.com', procedure: 'Drenagem Linfática', lastVisit: '18/06/2026', totalSpent: 840, status: 'inativo', visits: 3, stage: 'Novo' },
-  { id: '7', name: 'Tatiana Ferreira', phone: '(11) 94567-8903', email: 'tati.f@email.com', procedure: 'Avaliação', lastVisit: '01/06/2026', totalSpent: 0, status: 'prospect', visits: 0, stage: 'Novo' },
-  { id: '8', name: 'Mônica Pereira', phone: '(11) 95678-9014', email: 'monica.p@email.com', procedure: 'Toxina Botulínica', lastVisit: '22/08/2026', totalSpent: 3600, status: 'ativo', visits: 5, stage: 'Regular' },
-];
-
-const stageColors: Record<string, string> = {
-  VIP: '#D97706',
-  Frequente: '#7C3AED',
-  Regular: '#0891B2',
-  Novo: '#059669',
-};
-
-const statusConfig = {
-  ativo: { label: 'Ativo', color: '#059669', bg: '#ECFDF5' },
-  inativo: { label: 'Inativo', color: '#9CA3AF', bg: '#F9FAFB' },
-  prospect: { label: 'Prospect', color: '#6366F1', bg: '#EEF2FF' },
-};
+import { Search, Plus, ChevronRight, Phone, Star, Users } from 'lucide-react';
+import type { Client, Page } from '../types';
+import {
+  daysSinceLastVisit, formatBR, getClients, getNextReturn, isInactive, money,
+} from '../data/mock';
+import Badge from '../components/ui/Badge';
+import EmptyState from '../components/ui/EmptyState';
 
 interface ClientesProps {
   onNavigate: (p: Page) => void;
   onSelectClient: (id: string) => void;
 }
 
+const stageColors: Record<Client['stage'], string> = {
+  VIP: '#D97706',
+  Frequente: '#7C3AED',
+  Regular: '#0891B2',
+  Nova: '#059669',
+};
+
+/** Chip "Ativa" / "Sem visita há N dias" — mesma regra usada na ficha. */
+export function statusChip(client: Client) {
+  const days = daysSinceLastVisit(client);
+  return isInactive(client)
+    ? { label: `Sem visita há ${days} dias`, color: '#D97706', bg: '#FFF7ED' }
+    : { label: 'Ativa', color: '#059669', bg: '#ECFDF5' };
+}
+
 export default function Clientes({ onNavigate, onSelectClient }: ClientesProps) {
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('todos');
+  const [filter, setFilter] = useState<'todas' | 'ativas' | 'inativas'>('todas');
 
+  const clients = getClients();
   const filtered = clients.filter(c => {
-    const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.phone.includes(search) || c.email.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = statusFilter === 'todos' || c.status === statusFilter;
+    const q = search.toLowerCase();
+    const matchSearch = c.name.toLowerCase().includes(q) || c.phone.includes(search) || c.email.toLowerCase().includes(q);
+    const matchStatus =
+      filter === 'todas' || (filter === 'inativas' ? isInactive(c) : !isInactive(c));
     return matchSearch && matchStatus;
   });
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
+    <div className="flex flex-col h-full overflow-hidden relative">
       {/* Toolbar */}
-      <div className="px-6 py-3 flex flex-wrap items-center gap-3 border-b shrink-0"
+      <div className="px-3 md:px-6 py-2.5 flex flex-wrap items-center gap-2 border-b shrink-0"
         style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border" style={{ borderColor: 'var(--border)', background: 'var(--secondary)' }}>
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg border flex-1 min-w-[180px]"
+          style={{ borderColor: 'var(--border)', background: 'var(--secondary)' }}>
           <Search size={14} style={{ color: 'var(--muted-foreground)' }} />
           <input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Buscar cliente…" className="text-sm bg-transparent outline-none w-48"
+            placeholder="Buscar cliente…" className="text-sm bg-transparent outline-none w-full"
             style={{ color: 'var(--foreground)' }} />
         </div>
 
         <div className="flex gap-1">
-          {['todos', 'ativo', 'inativo', 'prospect'].map(s => (
-            <button key={s} onClick={() => setStatusFilter(s)}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors capitalize"
-              style={statusFilter === s
+          {(['todas', 'ativas', 'inativas'] as const).map(f => (
+            <button key={f} onClick={() => setFilter(f)}
+              className="px-3 py-2 rounded-lg text-xs font-medium capitalize"
+              style={filter === f
                 ? { background: 'var(--primary)', color: 'white' }
                 : { background: 'var(--secondary)', color: 'var(--muted-foreground)' }}>
-              {s === 'todos' ? 'Todos' : s.charAt(0).toUpperCase() + s.slice(1)}
+              {f}
             </button>
           ))}
         </div>
 
-        <div className="ml-auto flex items-center gap-2">
-          <span className="text-xs" style={{ color: 'var(--muted-foreground)' }}>{filtered.length} clientes</span>
-          <button onClick={() => onNavigate('novo-cliente')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white"
-            style={{ background: 'var(--primary)' }}>
-            <Plus size={14} /> Novo Cliente
-          </button>
-        </div>
+        <button onClick={() => onNavigate('novo-cliente')}
+          className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-white ml-auto"
+          style={{ background: 'var(--primary)' }}>
+          <Plus size={14} /> Nova cliente
+        </button>
       </div>
 
-      {/* Summary cards */}
-      <div className="px-6 pt-4 pb-2 grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
-        {[
-          { label: 'Total de clientes', value: clients.length, color: 'var(--primary)' },
-          { label: 'Ativos', value: clients.filter(c => c.status === 'ativo').length, color: '#059669' },
-          { label: 'Ticket médio', value: 'R$ ' + Math.round(clients.filter(c => c.totalSpent > 0).reduce((s, c) => s + c.totalSpent / c.visits, 0) / clients.filter(c => c.totalSpent > 0).length).toLocaleString('pt-BR'), color: 'var(--foreground)' },
-          { label: 'VIP', value: clients.filter(c => c.stage === 'VIP').length, color: '#D97706' },
-        ].map(({ label, value, color }) => (
-          <div key={label} className="p-3 rounded-xl" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
-            <div className="text-xl font-bold" style={{ fontFamily: 'Instrument Sans, sans-serif', color }}>{value}</div>
-            <div className="text-xs mt-0.5" style={{ color: 'var(--muted-foreground)' }}>{label}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Table */}
-      <div className="flex-1 overflow-auto px-6 pb-6">
-        <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border)' }}>
-          <table className="w-full text-sm">
-            <thead style={{ background: 'var(--secondary)' }}>
-              <tr>
-                {['Cliente', 'Contato', 'Último Procedimento', 'Última Visita', 'Total Gasto', 'Categoria', 'Status', ''].map(h => (
-                  <th key={h} className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider whitespace-nowrap"
-                    style={{ color: 'var(--muted-foreground)' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y" style={{ borderColor: 'var(--border)' }}>
+      <div className="flex-1 overflow-auto p-3 md:p-6">
+        {filtered.length === 0 ? (
+          <EmptyState Icon={Users} title="Nenhuma cliente encontrada"
+            description="Ajuste a busca ou cadastre uma nova cliente."
+            actionLabel="Nova cliente" onAction={() => onNavigate('novo-cliente')} />
+        ) : (
+          <>
+            {/* Cartões — celular */}
+            <div className="md:hidden space-y-2">
               {filtered.map(c => {
-                const sc = statusConfig[c.status as keyof typeof statusConfig];
+                const chip = statusChip(c);
+                const next = getNextReturn(c);
                 return (
-                  <tr key={c.id} onClick={() => onSelectClient(c.id)}
-                    className="hover:bg-secondary/50 transition-colors cursor-pointer">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                          style={{ background: 'linear-gradient(135deg, #0A6E6E, #0D9488)' }}>
-                          {c.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
-                        </div>
-                        <div>
-                          <div className="font-medium text-sm">{c.name}</div>
-                          <div className="text-xs" style={{ color: 'var(--muted-foreground)' }}>{c.visits} visitas</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: 'var(--muted-foreground)' }}>
-                        <Phone size={10} /> {c.phone}
-                      </div>
-                      <div className="flex items-center gap-1 text-xs" style={{ color: 'var(--muted-foreground)' }}>
-                        <Mail size={10} /> {c.email}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-xs">{c.procedure}</td>
-                    <td className="px-4 py-3 text-xs" style={{ color: 'var(--muted-foreground)' }}>{c.lastVisit}</td>
-                    <td className="px-4 py-3 text-sm font-semibold" style={{ color: 'var(--primary)' }}>
-                      {c.totalSpent > 0 ? `R$ ${c.totalSpent.toLocaleString('pt-BR')}` : '—'}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1">
+                  <button key={c.id} onClick={() => onSelectClient(c.id)}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl text-left"
+                    style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+                    <span className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+                      style={{ background: 'linear-gradient(135deg, #0A6E6E, #0D9488)' }}>{c.initials}</span>
+                    <span className="flex-1 min-w-0">
+                      <span className="flex items-center gap-1.5">
+                        <span className="text-sm font-medium truncate">{c.name}</span>
                         {c.stage === 'VIP' && <Star size={11} fill="#D97706" style={{ color: '#D97706' }} />}
-                        <span className="text-xs font-medium" style={{ color: stageColors[c.stage] || 'var(--muted-foreground)' }}>
-                          {c.stage}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="text-xs px-2 py-0.5 rounded-full font-medium"
-                        style={{ background: sc.bg, color: sc.color }}>{sc.label}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <ChevronRight size={16} style={{ color: 'var(--muted-foreground)' }} />
-                    </td>
-                  </tr>
+                      </span>
+                      <span className="block text-xs mt-0.5 truncate" style={{ color: 'var(--muted-foreground)' }}>
+                        {next ? `Retorno: ${next.procedure.name} em ${formatBR(next.dueISO)}` : 'Sem procedimento registrado'}
+                      </span>
+                      <span className="inline-block mt-1.5">
+                        <Badge label={chip.label} color={chip.color} bg={chip.bg} />
+                      </span>
+                    </span>
+                    <ChevronRight size={16} style={{ color: 'var(--muted-foreground)' }} />
+                  </button>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
+            </div>
+
+            {/* Tabela — desktop */}
+            <div className="hidden md:block rounded-xl overflow-hidden" style={{ border: '1px solid var(--border)' }}>
+              <table className="w-full text-sm">
+                <thead style={{ background: 'var(--secondary)' }}>
+                  <tr>
+                    {['Cliente', 'Contato', 'Última visita', 'Próximo retorno', 'Total gasto', 'Status', ''].map(h => (
+                      <th key={h} className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider whitespace-nowrap"
+                        style={{ color: 'var(--muted-foreground)' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y" style={{ borderColor: 'var(--border)' }}>
+                  {filtered.map(c => {
+                    const chip = statusChip(c);
+                    const next = getNextReturn(c);
+                    return (
+                      <tr key={c.id} onClick={() => onSelectClient(c.id)}
+                        className="hover:bg-secondary/50 transition-colors cursor-pointer">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <span className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+                              style={{ background: 'linear-gradient(135deg, #0A6E6E, #0D9488)' }}>{c.initials}</span>
+                            <div>
+                              <div className="font-medium text-sm flex items-center gap-1.5">
+                                {c.name}
+                                {c.stage === 'VIP' && <Star size={11} fill="#D97706" style={{ color: '#D97706' }} />}
+                              </div>
+                              <div className="text-xs" style={{ color: stageColors[c.stage] }}>{c.stage}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1 text-xs" style={{ color: 'var(--muted-foreground)' }}>
+                            <Phone size={10} /> {c.phone}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-xs" style={{ color: 'var(--muted-foreground)' }}>{formatBR(c.lastVisit)}</td>
+                        <td className="px-4 py-3 text-xs">
+                          {next ? (
+                            <span style={{ color: next.overdue ? '#D97706' : 'var(--foreground)' }}>
+                              {next.procedure.name} · {formatBR(next.dueISO)}
+                            </span>
+                          ) : '—'}
+                        </td>
+                        <td className="px-4 py-3 text-sm font-semibold" style={{ color: 'var(--primary)' }}>
+                          {c.totalSpent > 0 ? money(c.totalSpent) : '—'}
+                        </td>
+                        <td className="px-4 py-3"><Badge label={chip.label} color={chip.color} bg={chip.bg} /></td>
+                        <td className="px-4 py-3"><ChevronRight size={16} style={{ color: 'var(--muted-foreground)' }} /></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
+
+      {/* Botão flutuante no celular */}
+      <button onClick={() => onNavigate('novo-cliente')}
+        className="md:hidden absolute bottom-20 right-4 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg z-20"
+        style={{ background: 'var(--primary)' }}>
+        <Plus size={22} />
+      </button>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ArrowLeft, Check } from 'lucide-react';
 import type { Page } from '../types';
+import { getProcedures, leadSources } from '../data/mock';
 
 interface NovoLeadProps {
   onNavigate: (p: Page) => void;
@@ -24,15 +25,15 @@ export default function NovoLead({ onNavigate }: NovoLeadProps) {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <div className="px-6 py-3 flex items-center gap-3 border-b shrink-0"
+      <div className="px-3 md:px-6 py-3 flex items-center gap-3 border-b shrink-0"
         style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
         <button onClick={() => onNavigate('leads')} className="p-1.5 rounded-lg hover:bg-secondary" style={{ color: 'var(--muted-foreground)' }}>
           <ArrowLeft size={18} />
         </button>
-        <span className="font-semibold">Novo Lead</span>
+        <span className="font-semibold text-sm">Novo lead</span>
       </div>
 
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 overflow-auto p-4 md:p-6">
         <div className="max-w-md mx-auto space-y-5">
           <div className="p-5 rounded-xl space-y-4" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
             <h3 className="font-semibold text-sm" style={{ fontFamily: 'Instrument Sans, sans-serif' }}>Informações do Lead</h3>
@@ -53,14 +54,14 @@ export default function NovoLead({ onNavigate }: NovoLeadProps) {
                 <select className="w-full px-3 py-2.5 rounded-lg text-sm outline-none"
                   style={{ background: 'var(--secondary)', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
                   <option>Selecionar…</option>
-                  {['Toxina Botulínica', 'Preenchimento Labial', 'Limpeza de Pele', 'Bioestimulador', 'Fio de PDO'].map(p => <option key={p}>{p}</option>)}
+                  {getProcedures().map(p => <option key={p.id}>{p.name}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-foreground)' }}>Origem</label>
                 <select className="w-full px-3 py-2.5 rounded-lg text-sm outline-none"
                   style={{ background: 'var(--secondary)', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
-                  {['Instagram', 'Google Ads', 'Indicação', 'WhatsApp', 'Passagem', 'Outros'].map(s => <option key={s}>{s}</option>)}
+                  {leadSources.map(s => <option key={s}>{s}</option>)}
                 </select>
               </div>
             </div>
